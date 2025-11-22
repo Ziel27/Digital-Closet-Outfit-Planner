@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+// Set base URL for all API requests
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://ec2-13-214-128-31.ap-southeast-1.compute.amazonaws.com:5000';
+axios.defaults.baseURL = API_BASE_URL;
+
 // Configure axios defaults
 axios.defaults.withCredentials = true; // Include cookies in all requests
 

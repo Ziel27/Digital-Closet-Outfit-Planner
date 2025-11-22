@@ -27,8 +27,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '';
-      const response = await axios.get(`${apiUrl}/api/users/profile`);
+      const response = await axios.get('/api/users/profile');
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user:', error);

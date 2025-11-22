@@ -14,7 +14,7 @@ export default defineConfig({
     proxy: {
       // Only proxy API requests - Vite handles everything else
       '^/api/.*': {
-        target: 'http://localhost:5000',
+        target: 'http://ec2-13-214-128-31.ap-southeast-1.compute.amazonaws.com:5000',
         changeOrigin: true,
         secure: false,
         // Don't fail on connection errors - just pass through

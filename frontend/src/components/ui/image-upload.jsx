@@ -37,7 +37,6 @@ const ImageUpload = ({ value, onChange, className = '' }) => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const apiUrl = import.meta.env.VITE_API_URL || '';
       const token = localStorage.getItem('token');
       
       const config = {
@@ -51,7 +50,7 @@ const ImageUpload = ({ value, onChange, className = '' }) => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await axios.post(`${apiUrl}/api/upload/clothing`, formData, config);
+      const response = await axios.post('/api/upload/clothing', formData, config);
 
       // Cloudinary returns the full URL directly
       const imageUrl = response.data.url;

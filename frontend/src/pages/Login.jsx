@@ -1,9 +1,15 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { FiPackage } from 'react-icons/fi';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { FiPackage } from "react-icons/fi";
 
 const Login = () => {
   const { isAuthenticated } = useAuth();
@@ -11,12 +17,14 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
   const handleGoogleLogin = () => {
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const backendUrl =
+      import.meta.env.VITE_API_URL ||
+      "http://ec2-13-214-128-31.ap-southeast-1.compute.amazonaws.com:5000";
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 
@@ -33,11 +41,7 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            onClick={handleGoogleLogin}
-            className="w-full"
-            size="lg"
-          >
+          <Button onClick={handleGoogleLogin} className="w-full" size="lg">
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -65,4 +69,3 @@ const Login = () => {
 };
 
 export default Login;
-

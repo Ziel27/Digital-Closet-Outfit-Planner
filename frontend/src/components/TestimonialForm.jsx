@@ -29,7 +29,6 @@ const TestimonialForm = ({ open, onOpenChange, onSuccess }) => {
     setSubmitting(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '';
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -39,7 +38,7 @@ const TestimonialForm = ({ open, onOpenChange, onSuccess }) => {
       }
 
       const response = await axios.post(
-        `${apiUrl}/api/testimonials`,
+        '/api/testimonials',
         {
           name: formData.name || user?.name || 'Anonymous',
           role: formData.role || 'User',

@@ -65,8 +65,7 @@ const Landing = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "";
-        const response = await axios.get(`${apiUrl}/api/stats/public`, {
+        const response = await axios.get("/api/stats/public", {
           timeout: 5000, // 5 second timeout
         });
         setStats(response.data);
@@ -88,8 +87,7 @@ const Landing = () => {
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "";
-        const response = await axios.get(`${apiUrl}/api/testimonials/public`, {
+        const response = await axios.get("/api/testimonials/public", {
           timeout: 5000, // 5 second timeout
         });
         setTestimonials(response.data);
@@ -816,13 +814,9 @@ const Landing = () => {
             // Refresh testimonials after successful submission
             const fetchTestimonials = async () => {
               try {
-                const apiUrl = import.meta.env.VITE_API_URL || "";
-                const response = await axios.get(
-                  `${apiUrl}/api/testimonials/public`,
-                  {
-                    timeout: 5000,
-                  }
-                );
+                const response = await axios.get("/api/testimonials/public", {
+                  timeout: 5000,
+                });
                 setTestimonials(response.data);
               } catch (error) {
                 if (
