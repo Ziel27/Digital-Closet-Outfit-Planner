@@ -180,9 +180,102 @@ async function startServer() {
     res.json({ csrfToken: req.csrfToken || null });
   });
 
-  // Health check
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "OK", message: "Server is running" });
+  // Enhanced Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    const startTime = Date.now();
+    const healthCheck = {
+      status: "OK",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || "development",
+      version: process.env.npm_package_version || "1.0.0",
+      services: {
+        database: {
+          status: "unknown",
+          responseTime: null,
+        },
+      },
+      memory: {
+        used:
+          Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) /
+          100,
+        total:
+          Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) /
+          100,
+        unit: "MB",
+      },
+      responseTime: null,
+    };
+
+    // Check MongoDB connection
+    try {
+      const dbStartTime = Date.now();
+      if (mongoose.connection.readyState === 1) {
+        // Connection is open
+        await mongoose.connection.db.admin().ping();
+        healthCheck.services.database.status = "connected";
+        healthCheck.services.database.responseTime = Date.now() - dbStartTime;
+      } else {
+        healthCheck.services.database.status = "disconnected";
+      }
+    } catch (error) {
+      healthCheck.services.database.status = "error";
+      healthCheck.services.database.error = error.message;
+    }
+
+    // Calculate total response time
+    healthCheck.responseTime = Date.now() - startTime;
+
+    // Determine overall status
+    const isHealthy =
+      healthCheck.services.database.status === "connected" ||
+      healthCheck.services.database.status === "unknown"; // Allow unknown in case MongoDB check fails
+
+    res.status(isHealthy ? 200 : 503).json(healthCheck);
+  });
+
+  // Test endpoint for various testing purposes
+  app.get("/api/test", (req, res) => {
+    res.json({
+      message: "Test endpoint is working",
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      path: req.path,
+      query: req.query,
+      headers: {
+        "user-agent": req.get("user-agent"),
+        "content-type": req.get("content-type"),
+      },
+      server: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        uptime: process.uptime(),
+        memory: {
+          used:
+            Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) /
+            100,
+          total:
+            Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) /
+            100,
+          unit: "MB",
+        },
+      },
+    });
+  });
+
+  // Test POST endpoint (for testing POST requests)
+  app.post("/api/test", (req, res) => {
+    res.json({
+      message: "Test POST endpoint is working",
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      received: {
+        contentType: req.get("content-type"),
+        bodySize: JSON.stringify(req.body).length,
+      },
+    });
   });
 
   // Error handling middleware

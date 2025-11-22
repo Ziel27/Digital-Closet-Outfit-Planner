@@ -195,6 +195,12 @@ Digital-Closet-Outfit-Planner/
 - `DELETE /api/calendar/:id` - Delete calendar event (Protected)
 - `POST /api/calendar/suggestions` - Get weather-based style suggestions (Protected)
 
+### System
+- `GET /api/health` - Health check endpoint with database status, memory usage, and uptime (Public)
+- `GET /api/test` - Test endpoint for debugging and testing (Public)
+- `POST /api/test` - Test POST endpoint for testing POST requests (Public)
+- `GET /api/csrf-token` - Get CSRF token for frontend (Public)
+
 ## Security Features
 
 - ✅ JWT-based authentication

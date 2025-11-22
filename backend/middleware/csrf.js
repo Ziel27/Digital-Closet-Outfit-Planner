@@ -45,6 +45,7 @@ export const verifyCsrfToken = (req, res, next) => {
     req.path === '/api/stats/public' ||
     req.path === '/api/testimonials/public' ||
     req.path === '/api/health' ||
+    req.path === '/api/test' ||
     req.path === '/api/csrf-token'
   ) {
     return next();
