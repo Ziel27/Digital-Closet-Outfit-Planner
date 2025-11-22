@@ -92,8 +92,28 @@ async function startServer() {
 
   app.use(
     cors({
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      origin: function (origin, callback) {
+        // List of allowed origins
+        const allowedOrigins = [
+          "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
+          "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com", // If you add HTTPS later
+          "http://localhost:3000", // For local development
+          process.env.FRONTEND_URL, // From environment variable if set
+        ].filter(Boolean); // Remove any undefined values
+
+        // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          logger.warn(`CORS blocked origin: ${origin}`);
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
     })
   );
 
