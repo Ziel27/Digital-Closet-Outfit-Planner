@@ -76,6 +76,10 @@ async function startServer() {
         microphone: [],
         geolocation: [],
       },
+      // Disable Cross-Origin-Opener-Policy for HTTP (only works with HTTPS)
+      // This prevents the browser warning when using HTTP
+      // Enable when you move to HTTPS: crossOriginOpenerPolicy: { policy: "same-origin" }
+      crossOriginOpenerPolicy: false,
     })
   );
 
