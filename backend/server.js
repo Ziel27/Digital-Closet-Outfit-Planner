@@ -94,19 +94,19 @@ async function startServer() {
     });
   }
 
+  // CORS configuration
+  const allowedOrigins = [
+    "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
+    "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
+    "https://digitalcloset.giandazielpon.online", // Vercel frontend
+    "https://digitalclosetserver.giandazielpon.online", // Backend domain
+    "http://localhost:3000", // For local development
+    process.env.FRONTEND_URL, // From environment variable if set
+  ].filter(Boolean);
+
   app.use(
     cors({
       origin: function (origin, callback) {
-        // List of allowed origins
-        const allowedOrigins = [
-          "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
-          "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com", // If you add HTTPS later
-          "https://digitalcloset.giandazielpon.online", // Vercel frontend
-          "https://digitalclosetserver.giandazielpon.online", // Backend domain
-          "http://localhost:3000", // For local development
-          process.env.FRONTEND_URL, // From environment variable if set
-        ].filter(Boolean); // Remove any undefined values
-
         // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
         if (!origin) return callback(null, true);
 
@@ -125,6 +125,7 @@ async function startServer() {
           callback(null, true);
         } else {
           logger.warn(`CORS blocked origin: ${origin}`);
+          logger.warn(`Normalized: ${normalizedOrigin}`);
           logger.warn(`Allowed origins: ${JSON.stringify(allowedOrigins)}`);
           callback(new Error("Not allowed by CORS"));
         }
