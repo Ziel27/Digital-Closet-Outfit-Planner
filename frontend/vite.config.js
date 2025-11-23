@@ -14,7 +14,7 @@ export default defineConfig({
     proxy: {
       // Only proxy API requests - Vite handles everything else
       '^/api/.*': {
-        target: 'https://ec2-13-212-69-82.ap-southeast-1.compute.amazonaws.com',
+        target: 'https://digitalclosetserver.giandazielpon.online',
         changeOrigin: true,
         secure: false,
         // Don't fail on connection errors - just pass through

@@ -31,12 +31,12 @@ if (!hasClientID || !hasClientSecret) {
   // Construct callback URL
   // Google OAuth requires a domain name (not IP address)
   // Use OAUTH_CALLBACK_URL or BACKEND_URL environment variable
-  // EC2 DNS format: ec2-13-212-69-82.ap-southeast-1.compute.amazonaws.com
+  // Default: https://digitalclosetserver.giandazielpon.online
   const callbackURL =
     process.env.OAUTH_CALLBACK_URL ||
     (process.env.BACKEND_URL
       ? `${process.env.BACKEND_URL}/api/auth/google/callback`
-      : `https://ec2-13-212-69-82.ap-southeast-1.compute.amazonaws.com/api/auth/google/callback`);
+      : `https://digitalclosetserver.giandazielpon.online/api/auth/google/callback`);
 
   logger.info(`✓ OAuth callback URL: ${callbackURL}`);
 

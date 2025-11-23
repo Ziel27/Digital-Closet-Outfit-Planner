@@ -101,7 +101,7 @@ async function startServer() {
         const allowedOrigins = [
           "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
           "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com", // If you add HTTPS later
-          "https://ec2-13-212-69-82.ap-southeast-1.compute.amazonaws.com", // EC2 backend DNS
+          "https://digitalclosetserver.giandazielpon.online", // Backend domain
           "http://localhost:3000", // For local development
           process.env.FRONTEND_URL, // From environment variable if set
         ].filter(Boolean); // Remove any undefined values

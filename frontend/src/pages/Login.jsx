@@ -24,7 +24,7 @@ const Login = () => {
   const handleGoogleLogin = () => {
     const backendUrl =
       import.meta.env.VITE_API_URL ||
-      "https://ec2-13-212-69-82.ap-southeast-1.compute.amazonaws.com";
+      "https://digitalclosetserver.giandazielpon.online";
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 

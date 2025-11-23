@@ -3,7 +3,7 @@ import axios from "axios";
 // Set base URL for all API requests
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://ec2-13-212-69-82.ap-southeast-1.compute.amazonaws.com";
+  "https://digitalclosetserver.giandazielpon.online";
 axios.defaults.baseURL = API_BASE_URL;
 
 // Configure axios defaults
