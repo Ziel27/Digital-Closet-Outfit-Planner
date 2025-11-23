@@ -22,9 +22,7 @@ const Login = () => {
   }, [isAuthenticated, navigate]);
 
   const handleGoogleLogin = () => {
-    const backendUrl =
-      import.meta.env.VITE_API_URL ||
-      "http://ec2-13-214-128-31.ap-southeast-1.compute.amazonaws.com";
+    const backendUrl = import.meta.env.VITE_API_URL || "https://13.212.69.82";
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 
