@@ -200,6 +200,28 @@ async function startServer() {
     // This allows health checks to work
   }
 
+  // Root route
+  app.get("/", (req, res) => {
+    res.json({
+      message: "Digital Closet API",
+      version: "1.0.0",
+      status: "running",
+      timestamp: new Date().toISOString(),
+      endpoints: {
+        health: "/api/health",
+        test: "/api/test",
+        auth: "/api/auth",
+        users: "/api/users",
+        clothing: "/api/clothing",
+        outfits: "/api/outfits",
+        calendar: "/api/calendar",
+        stats: "/api/stats",
+        testimonials: "/api/testimonials",
+      },
+      documentation: "API documentation available at /api/health",
+    });
+  });
+
   // Routes
   app.use("/api/auth", authRoutes);
   app.use("/api/users", userRoutes);
