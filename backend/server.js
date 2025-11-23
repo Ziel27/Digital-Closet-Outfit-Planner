@@ -60,7 +60,7 @@ async function startServer() {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:", "http://res.cloudinary.com"],
+          imgSrc: ["'self'", "data:", "https:", "https://res.cloudinary.com"],
           connectSrc: ["'self'", "https://api.openweathermap.org"],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
