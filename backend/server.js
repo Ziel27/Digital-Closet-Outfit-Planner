@@ -83,9 +83,14 @@ async function startServer() {
     })
   );
 
-  // HTTPS redirect in production
+  // HTTPS redirect in production (skip for API routes - nginx handles HTTPS)
   if (process.env.NODE_ENV === "production") {
     app.use((req, res, next) => {
+      // Skip redirect for API routes (nginx handles HTTPS termination)
+      if (req.path.startsWith("/api") || req.path === "/") {
+        return next();
+      }
+      // Only redirect non-API routes if not already HTTPS
       if (req.header("x-forwarded-proto") !== "https") {
         res.redirect(`https://${req.header("host")}${req.url}`);
       } else {
