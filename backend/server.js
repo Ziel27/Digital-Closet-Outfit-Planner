@@ -79,7 +79,7 @@ async function startServer() {
       // Disable Cross-Origin-Opener-Policy for HTTP (only works with HTTPS)
       // This prevents the browser warning when using HTTP
       // Enable when you move to HTTPS: crossOriginOpenerPolicy: { policy: "same-origin" }
-      crossOriginOpenerPolicy: false,
+      crossOriginOpenerPolicy: { policy: "same-origin" },
     })
   );
 
@@ -101,7 +101,7 @@ async function startServer() {
         const allowedOrigins = [
           "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
           "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com", // If you add HTTPS later
-          "https://digitalclosetserver.giandazielpon.online",
+          "https://digitalcloset.giandazielpon.online", // Vercel frontend
           "https://digitalclosetserver.giandazielpon.online", // Backend domain
           "http://localhost:3000", // For local development
           process.env.FRONTEND_URL, // From environment variable if set
@@ -110,7 +110,18 @@ async function startServer() {
         // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        // Normalize origin (remove trailing slash if present)
+        const normalizedOrigin = origin.endsWith("/")
+          ? origin.slice(0, -1)
+          : origin;
+
+        if (
+          allowedOrigins.includes(normalizedOrigin) ||
+          allowedOrigins.includes(origin)
+        ) {
+          if (process.env.NODE_ENV === "development") {
+            logger.debug(`CORS allowed origin: ${origin}`);
+          }
           callback(null, true);
         } else {
           logger.warn(`CORS blocked origin: ${origin}`);
@@ -121,6 +132,7 @@ async function startServer() {
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+      exposedHeaders: ["X-CSRF-Token"],
     })
   );
 
@@ -305,9 +317,26 @@ async function startServer() {
     });
   });
 
-  // Error handling middleware
+  // Error handling middleware (must be after CORS to include headers)
   app.use((err, req, res, next) => {
     logger.error("Error:", err.stack);
+
+    // Ensure CORS headers are set even on errors
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
+      "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
+      "https://digitalcloset.giandazielpon.online",
+      "https://digitalclosetserver.giandazielpon.online",
+      "http://localhost:3000",
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
+
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+
     res.status(err.status || 500).json({
       message: err.message || "Internal Server Error",
       ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
