@@ -187,7 +187,9 @@ async function startServer() {
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: "strict", // Additional CSRF protection
+        // Use "none" for cross-origin in production (frontend and backend on different domains)
+        // "strict" in development for same-origin security
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       },
     })
   );
