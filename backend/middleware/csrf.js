@@ -17,6 +17,8 @@ export const generateCsrfToken = (req, res, next) => {
     const secret = req.session.csrfSecret || tokens.secretSync();
     if (!req.session.csrfSecret) {
       req.session.csrfSecret = secret;
+      // Explicitly mark session as modified to ensure it's saved
+      req.session.touched = true;
     }
     
     const token = tokens.create(secret);
