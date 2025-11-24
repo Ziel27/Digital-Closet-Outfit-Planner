@@ -52,6 +52,11 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 5000;
 
+  // Trust proxy - Required when behind Nginx reverse proxy
+  // This allows Express to correctly handle X-Forwarded-* headers
+  // and set secure cookies properly
+  app.set('trust proxy', true);
+
   // Security middleware
   app.use(
     helmet({
