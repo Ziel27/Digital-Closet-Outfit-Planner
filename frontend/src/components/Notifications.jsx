@@ -14,6 +14,32 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
   useEffect(() => {
     let isMounted = true;
     let abortController = new AbortController();
+    let intervalId = null;
+    const retryDelayRef = { current: 5 * 60 * 1000 }; // Start with 5 minutes, use ref to allow updates
+
+    const fetchNotifications = async (signal = null) => {
+      try {
+        const response = await axios.get("/api/notifications", { signal });
+        const newNotifications = response.data.notifications || [];
+        setNotifications(newNotifications);
+        // Reset to normal interval on success
+        retryDelayRef.current = 5 * 60 * 1000;
+      } catch (error) {
+        // Don't log errors for aborted requests or rate limits
+        if (error.name !== "CanceledError" && error.code !== "ERR_CANCELED") {
+          if (error.response?.status === 429) {
+            // Rate limit exceeded - increase retry delay exponentially
+            retryDelayRef.current = Math.min(retryDelayRef.current * 2, 30 * 60 * 1000); // Max 30 minutes
+            console.warn(`Rate limit exceeded for notifications. Will retry in ${retryDelayRef.current / 1000 / 60} minutes.`);
+            // Don't update state on rate limit - keep existing notifications
+          } else {
+            console.error("Error fetching notifications:", error);
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
     const loadNotifications = async () => {
       if (isMounted) {
@@ -21,38 +47,36 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
       }
     };
 
-    loadNotifications();
-
-    // Refresh notifications every 5 minutes
-    const interval = setInterval(() => {
-      if (isMounted) {
-        abortController.abort(); // Cancel previous request
-        abortController = new AbortController();
-        fetchNotifications(abortController.signal);
+    const scheduleNextFetch = () => {
+      if (intervalId) {
+        clearTimeout(intervalId);
       }
-    }, 5 * 60 * 1000);
+      
+      intervalId = setTimeout(() => {
+        if (isMounted) {
+          abortController.abort(); // Cancel previous request
+          abortController = new AbortController();
+          fetchNotifications(abortController.signal).then(() => {
+            scheduleNextFetch();
+          }).catch(() => {
+            // Even on error, schedule next fetch (with potentially increased delay)
+            scheduleNextFetch();
+          });
+        }
+      }, retryDelayRef.current);
+    };
+
+    loadNotifications();
+    scheduleNextFetch();
 
     return () => {
       isMounted = false;
       abortController.abort();
-      clearInterval(interval);
+      if (intervalId) {
+        clearTimeout(intervalId);
+      }
     };
   }, []);
-
-  const fetchNotifications = async (signal = null) => {
-    try {
-      const response = await axios.get("/api/notifications", { signal });
-      const newNotifications = response.data.notifications || [];
-      setNotifications(newNotifications);
-    } catch (error) {
-      // Don't log errors for aborted requests
-      if (error.name !== "CanceledError" && error.code !== "ERR_CANCELED") {
-        console.error("Error fetching notifications:", error);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const unreadCount = notifications.length;
 

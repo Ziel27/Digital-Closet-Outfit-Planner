@@ -24,7 +24,7 @@ const Login = () => {
   const handleGoogleLogin = () => {
     const backendUrl =
       import.meta.env.VITE_API_URL ||
-      "https://digitalclosetserver.giandazielpon.online";
+      "http://localhost:5000";
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 

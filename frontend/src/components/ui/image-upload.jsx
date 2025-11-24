@@ -37,20 +37,17 @@ const ImageUpload = ({ value, onChange, className = '' }) => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const token = localStorage.getItem('token');
-      
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
-
-      // Add authentication token if available
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // Get CSRF token first to ensure session is established
+      // This also ensures the session cookie is set
+      // Force refresh to ensure we have the latest token for the current session
+      const token = await getCsrfToken(true);
+      if (!token) {
+        throw new Error('Failed to get CSRF token. Please refresh the page and try again.');
       }
-
-      const response = await axios.post('/api/upload/clothing', formData, config);
+      
+      // Note: Authorization and CSRF tokens are automatically added by axios interceptor
+      // Don't set Content-Type - axios will set it automatically for FormData
+      const response = await axios.post('/api/upload/clothing', formData);
 
       // Cloudinary returns the full URL directly
       const imageUrl = response.data.url;

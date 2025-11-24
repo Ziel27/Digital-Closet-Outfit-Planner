@@ -70,9 +70,13 @@ const Landing = () => {
         });
         setStats(response.data);
       } catch (error) {
-        // Silently handle connection errors - backend might not be running
+        // Silently handle connection errors and rate limits - backend might not be running or rate limited
         // This is fine for the landing page, it will show default values
-        if (error.code !== "ECONNREFUSED" && error.code !== "ERR_NETWORK") {
+        if (
+          error.code !== "ECONNREFUSED" &&
+          error.code !== "ERR_NETWORK" &&
+          error.response?.status !== 429
+        ) {
           console.error("Error fetching stats:", error.message);
         }
         // Keep default values (0) on error - this is fine for landing page
@@ -92,9 +96,13 @@ const Landing = () => {
         });
         setTestimonials(response.data);
       } catch (error) {
-        // Silently handle connection errors - backend might not be running
+        // Silently handle connection errors and rate limits - backend might not be running or rate limited
         // This is fine for the landing page, it will show default values
-        if (error.code !== "ECONNREFUSED" && error.code !== "ERR_NETWORK") {
+        if (
+          error.code !== "ECONNREFUSED" &&
+          error.code !== "ERR_NETWORK" &&
+          error.response?.status !== 429
+        ) {
           console.error("Error fetching testimonials:", error.message);
         }
         // Keep default values on error - this is fine for landing page
@@ -821,7 +829,8 @@ const Landing = () => {
               } catch (error) {
                 if (
                   error.code !== "ECONNREFUSED" &&
-                  error.code !== "ERR_NETWORK"
+                  error.code !== "ERR_NETWORK" &&
+                  error.response?.status !== 429
                 ) {
                   console.error("Error fetching testimonials:", error.message);
                 }

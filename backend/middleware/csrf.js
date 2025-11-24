@@ -52,8 +52,15 @@ export const verifyCsrfToken = (req, res, next) => {
   }
 
   try {
-    const secret = req.session.csrfSecret;
+    const secret = req.session?.csrfSecret;
     const token = req.headers['x-csrf-token'] || req.body._csrf;
+
+    // Special case: Allow logout without CSRF if there's no session or no CSRF secret
+    // This handles cases where session expired but user wants to logout
+    // Logout is a safe operation (just clears session), so we can be lenient
+    if (req.path === '/api/auth/logout' && (!req.session || !secret)) {
+      return next();
+    }
 
     if (!secret || !token) {
       return res.status(403).json({ 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from '../utils/api.js'; // Use API utility with CSRF support
+import axios, { clearCsrfToken, getCsrfToken } from '../utils/api.js'; // Use API utility with CSRF support
 
 const AuthContext = createContext();
 
@@ -38,20 +38,46 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (token) => {
+  const login = async (token) => {
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Clear old CSRF token and get a new one for the new session
+    clearCsrfToken();
+    // Wait a bit for session to be established, then fetch new CSRF token
+    setTimeout(async () => {
+      await getCsrfToken(true);
+    }, 100);
     fetchUser();
   };
 
   const logout = async () => {
     try {
+      // Try to get a fresh CSRF token before logout
+      // If this fails (e.g., session expired), we'll still proceed with local logout
+      try {
+        await getCsrfToken(true);
+      } catch (csrfError) {
+        // CSRF token fetch failed, but we'll still try to logout
+        console.warn('Could not refresh CSRF token before logout, proceeding anyway');
+      }
+      
+      // Attempt logout with CSRF token
+      // The axios interceptor will automatically retry once if CSRF fails
       await axios.post('/api/auth/logout');
     } catch (error) {
-      console.error('Error logging out:', error);
+      // Even if logout fails on server (CSRF error, network error, etc.),
+      // we still clear local state to log the user out
+      // This is safe because the server-side session will expire anyway
+      if (error.response?.status !== 403 || !error.response?.data?.message?.includes('CSRF')) {
+        // Only log non-CSRF errors to avoid noise
+        console.error('Error logging out:', error);
+      }
     } finally {
+      // Always clear local state regardless of server response
+      // This ensures user is logged out even if server request fails
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
+      clearCsrfToken(); // Clear CSRF token on logout
       setUser(null);
     }
   };

@@ -31,11 +31,13 @@ if (!hasClientID || !hasClientSecret) {
   // Construct callback URL
   // Google OAuth requires a domain name (not IP address)
   // Use OAUTH_CALLBACK_URL or BACKEND_URL environment variable
-  // Default: https://digitalclosetserver.giandazielpon.online
+  // For local development, use localhost (must be registered in Google Cloud Console)
   const callbackURL =
     process.env.OAUTH_CALLBACK_URL ||
     (process.env.BACKEND_URL
       ? `${process.env.BACKEND_URL}/api/auth/google/callback`
+      : process.env.NODE_ENV === "development"
+      ? `http://localhost:5000/api/auth/google/callback`
       : `https://digitalclosetserver.giandazielpon.online/api/auth/google/callback`);
 
   logger.info(`✓ OAuth callback URL: ${callbackURL}`);

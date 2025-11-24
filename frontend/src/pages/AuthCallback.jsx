@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from '../utils/api.js'; // Use API utility with CSRF support
+import axios, { clearCsrfToken, getCsrfToken } from '../utils/api.js'; // Use API utility with CSRF support
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -33,7 +33,12 @@ const AuthCallback = () => {
           });
           const token = response.data.token;
           if (token) {
-            login(token);
+            // Clear old CSRF token before login (new session will be created)
+            clearCsrfToken();
+            await login(token);
+            // Wait for session to be established, then get new CSRF token
+            await new Promise(resolve => setTimeout(resolve, 200));
+            await getCsrfToken(true);
             navigate('/dashboard');
           } else {
             console.error('No token in response:', response.data);
