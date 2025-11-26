@@ -29,6 +29,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -183,11 +184,21 @@ async function startServer() {
 
   // Session configuration (must be before CSRF)
   // SESSION_SECRET is validated by validateEnv() - will exit if missing
+  // Use MongoDB store for production (avoids MemoryStore warning and memory leaks)
+  const sessionStore = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: "sessions",
+    ttl: 24 * 60 * 60, // 24 hours in seconds (matches cookie maxAge)
+    touchAfter: 24 * 3600, // Lazy session update - only update once per day
+    autoRemove: "native", // Use MongoDB TTL index for automatic cleanup
+  });
+
   app.use(
     session({
       secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: true, // Set to true to ensure sessions are created for CSRF tokens
+      store: sessionStore,
       cookie: {
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,

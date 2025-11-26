@@ -15,6 +15,12 @@ export const requestLogger = (req, res, next) => {
   
   // Log response when finished
   res.on('finish', () => {
+    // Skip logging common 404s that browsers/search engines request
+    const common404Paths = ['/favicon.ico', '/robots.txt', '/apple-touch-icon.png', '/favicon.png'];
+    if (res.statusCode === 404 && common404Paths.includes(req.path)) {
+      return; // Don't log these as errors
+    }
+    
     const duration = Date.now() - startTime;
     const logLevel = res.statusCode >= 400 ? 'error' : 'info';
     

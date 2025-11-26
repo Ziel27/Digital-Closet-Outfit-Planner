@@ -5,10 +5,16 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Fields to redact from logs
 const SENSITIVE_FIELDS = [
   'token', 'password', 'secret', 'key', 'authorization', 'cookie',
-  'csrf', 'session', 'code', 'access_token', 'refresh_token',
+  'csrf', 'session', 'access_token', 'refresh_token',
   'email', 'phone', 'address', 'ssn', 'credit', 'card',
   'api_key', 'apikey', 'private_key', 'oauth', 'client_secret',
   'mongodb', 'database', 'connection_string', 'uri', 'url'
+];
+
+// Fields that should never be redacted (even if they contain sensitive keywords)
+const SAFE_FIELDS = [
+  'statusCode', 'status', 'codeLength', 'hasCode', 'requestId', 'duration',
+  'method', 'path', 'ip', 'userAgent', 'userId', 'timestamp', 'level', 'message'
 ];
 
 // Redact sensitive values
@@ -36,7 +42,9 @@ const sanitizeValue = (value, depth = 0) => {
     const sanitized = {};
     for (const [key, val] of Object.entries(value)) {
       const lowerKey = key.toLowerCase();
-      const isSensitive = SENSITIVE_FIELDS.some(field => lowerKey.includes(field));
+      // Check if field is explicitly safe first
+      const isSafe = SAFE_FIELDS.some(field => key === field || lowerKey === field.toLowerCase());
+      const isSensitive = !isSafe && SENSITIVE_FIELDS.some(field => lowerKey.includes(field));
       
       if (isSensitive) {
         sanitized[key] = '[REDACTED]';
