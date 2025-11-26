@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import axios from "../utils/api.js";
 import logger from "../utils/logger.js";
@@ -11,6 +11,7 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -89,134 +90,190 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
   }, []);
 
   const unreadCount = notifications.length;
+  const buttonRef = useRef(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+  // Calculate dropdown position when opening
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownWidth = 384; // w-96 = 384px
+      const viewportWidth = window.innerWidth;
+
+      // Position to the right of the sidebar (sidebar is typically 256px = w-64)
+      // Or align with button if there's enough space
+      let left = rect.left;
+
+      // If dropdown would go off screen, position it to the right of the sidebar
+      if (rect.left + dropdownWidth > viewportWidth - 16) {
+        // Position it to the right of the sidebar (assuming sidebar is ~256px wide)
+        left = Math.max(256 + 16, viewportWidth - dropdownWidth - 16);
+      }
+
+      setDropdownPosition({
+        top: rect.bottom + 8, // 8px gap below button
+        left: left,
+      });
+    }
+  }, [isOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   return (
-    <div className="w-full">
-      {/* Notification Bell */}
-      <Button
-        variant="ghost"
-        className="w-full justify-start h-10 px-4"
-        onClick={async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const newIsOpen = !isOpen;
-          setIsOpen(newIsOpen);
+    <>
+      <div className="w-full relative" ref={containerRef}>
+        {/* Notification Bell */}
+        <Button
+          ref={buttonRef}
+          variant="ghost"
+          className="w-full justify-start h-10 px-4 relative"
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const newIsOpen = !isOpen;
+            setIsOpen(newIsOpen);
 
-          // Mark all notifications as read when opening the dropdown
-          if (newIsOpen && notifications.length > 0) {
-            try {
-              await axios.post("/api/notifications/mark-all-read");
-              // Refresh notifications immediately to update the count
-              const response = await axios.get("/api/notifications");
-              setNotifications(response.data.notifications || []);
-            } catch (error) {
-              logger.error("Error marking notifications as read", error);
+            // Mark all notifications as read when opening the dropdown
+            if (newIsOpen && notifications.length > 0) {
+              try {
+                await axios.post("/api/notifications/mark-all-read");
+                // Refresh notifications immediately to update the count
+                const response = await axios.get("/api/notifications");
+                setNotifications(response.data.notifications || []);
+              } catch (error) {
+                logger.error("Error marking notifications as read", error);
+              }
             }
-          }
-        }}
-        type="button"
-      >
-        <FiBell className="h-4 w-4 mr-3 flex-shrink-0" />
-        <span className="flex-1 text-left">Notifications</span>
-        {!loading && unreadCount > 0 && (
-          <span className="bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center ml-auto flex-shrink-0 min-w-[1.25rem]">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </Button>
+          }}
+          type="button"
+        >
+          <FiBell className="h-4 w-4 mr-3 flex-shrink-0" />
+          <span className="flex-1 text-left">Notifications</span>
+          {!loading && unreadCount > 0 && (
+            <span className="bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center ml-auto flex-shrink-0 min-w-[1.25rem]">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Button>
+      </div>
 
-      {/* Notifications Dropdown - Using Portal to render outside sidebar */}
+      {/* Compact Dropdown - Using Portal to escape sidebar overflow */}
       {isOpen &&
         typeof window !== "undefined" &&
         createPortal(
           <>
-            <div
-              className="fixed inset-0 z-[100] bg-black/20"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsOpen(false);
-                if (onClose) onClose();
-              }}
-            />
+            {/* Backdrop for mobile */}
+            {mobile && (
+              <div
+                className="fixed inset-0 z-[99] bg-black/10"
+                onClick={() => setIsOpen(false)}
+              />
+            )}
             <Card
-              className={`fixed ${
-                mobile ? "left-4 right-4" : "left-64 right-4"
-              } top-20 w-80 lg:w-96 max-h-[500px] overflow-y-auto z-[101] shadow-lg border bg-card`}
+              className="fixed w-80 lg:w-96 max-h-[400px] overflow-hidden z-[100] shadow-xl border bg-card"
+              style={{
+                top: `${dropdownPosition.top}px`,
+                left: `${dropdownPosition.left}px`,
+                // Ensure it doesn't go off screen
+                maxWidth: `calc(100vw - ${dropdownPosition.left + 16}px)`,
+              }}
             >
               <CardContent className="p-0">
-                <div className="flex items-center justify-between p-4 border-b">
-                  <h3 className="font-semibold">Notifications</h3>
+                <div className="flex items-center justify-between p-3 border-b bg-muted/50">
+                  <h3 className="font-semibold text-sm">Notifications</h3>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-7 w-7 p-0"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setIsOpen(false);
-                      if (onClose) onClose();
                     }}
                   >
-                    <FiX className="h-4 w-4" />
+                    <FiX className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                <div className="divide-y">
-                  {notifications.map((notification) => (
-                    <Link
-                      key={notification.id}
-                      to="/calendar"
-                      onClick={() => {
-                        setIsOpen(false);
-                        if (onClose) onClose();
-                      }}
-                      className="block p-4 hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                          <FiCalendar className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {notification.message}
-                          </p>
-                          {notification.location && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Location: {notification.location}
-                            </p>
-                          )}
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {new Date(notification.date).toLocaleDateString(
-                              "en-US",
-                              {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                                hour: "numeric",
-                                minute: "2-digit",
-                              }
-                            )}
-                          </p>
-                        </div>
-                        <FiChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
-                      </div>
-                    </Link>
-                  ))}
+                <div className="max-h-[350px] overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    <div className="divide-y">
+                      {notifications.map((notification) => (
+                        <Link
+                          key={notification.id}
+                          to="/calendar"
+                          onClick={() => {
+                            setIsOpen(false);
+                            if (onClose) onClose();
+                          }}
+                          className="block p-3 hover:bg-muted/30 transition-colors"
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <div className="p-1.5 bg-primary/10 rounded-md flex-shrink-0 mt-0.5">
+                              <FiCalendar className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm leading-tight">
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {notification.message}
+                              </p>
+                              {notification.location && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  📍 {notification.location}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                {new Date(notification.date).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-muted-foreground">
+                      <FiBell className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">No notifications</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        You're all caught up!
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {notifications.length === 0 && (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <FiBell className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>No notifications</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </>,
           document.body
         )}
-    </div>
+    </>
   );
 };
 
