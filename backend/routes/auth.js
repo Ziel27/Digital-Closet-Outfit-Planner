@@ -50,8 +50,7 @@ router.get('/google/callback',
 // Exchange code for token
 router.post('/exchange-code', (req, res) => {
   try {
-    logger.info('Exchange code request received:', {
-      body: req.body,
+    logger.info('Exchange code request received', {
       hasCode: !!req.body?.code,
       codeLength: req.body?.code?.length,
     });
@@ -59,7 +58,7 @@ router.post('/exchange-code', (req, res) => {
     const { code } = req.body;
     
     if (!code || typeof code !== 'string') {
-      logger.warn('Exchange code failed: Code is missing or invalid', { body: req.body });
+      logger.warn('Exchange code failed: Code is missing or invalid');
       return res.status(400).json({ message: 'Code is required' });
     }
     
@@ -67,7 +66,6 @@ router.post('/exchange-code', (req, res) => {
     
     if (!stored) {
       logger.warn('Exchange code failed: Code not found in store', { 
-        code: code.substring(0, 10) + '...',
         storeSize: codeStore.size,
       });
       // Check if code was already used (deleted from store)
@@ -81,7 +79,6 @@ router.post('/exchange-code', (req, res) => {
     if (stored.expiresAt < Date.now()) {
       codeStore.delete(code);
       logger.warn('Exchange code failed: Code expired', { 
-        code: code.substring(0, 10) + '...',
         expiredAt: new Date(stored.expiresAt).toISOString(),
         now: new Date().toISOString(),
       });
@@ -91,11 +88,11 @@ router.post('/exchange-code', (req, res) => {
     // Delete code immediately to prevent reuse
     const token = stored.token;
     codeStore.delete(code);
-    logger.info('Code exchanged successfully', { code: code.substring(0, 10) + '...' });
+    logger.info('Code exchanged successfully');
     res.json({ token });
   } catch (error) {
-    logger.error('Error exchanging code:', error);
-    res.status(500).json({ message: 'Error exchanging code', error: error.message });
+    logger.error('Error exchanging code', error);
+    res.status(500).json({ message: 'Error exchanging code' });
   }
 });
 

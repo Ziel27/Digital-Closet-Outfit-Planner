@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger.js';
 import {
   Dialog,
   DialogContent,
@@ -68,7 +69,7 @@ const TestimonialForm = ({ open, onOpenChange, onSuccess }) => {
       // Close modal
       onOpenChange(false);
     } catch (error) {
-      console.error('Error submitting testimonial:', error);
+      logger.error('Error submitting testimonial', error);
       setError(
         error.response?.data?.message ||
         'Failed to submit testimonial. Please try again.'

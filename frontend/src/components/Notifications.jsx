@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import axios from "../utils/api.js";
+import logger from "../utils/logger.js";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { FiBell, FiCalendar, FiX, FiChevronRight } from "react-icons/fi";
@@ -29,11 +30,18 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
         if (error.name !== "CanceledError" && error.code !== "ERR_CANCELED") {
           if (error.response?.status === 429) {
             // Rate limit exceeded - increase retry delay exponentially
-            retryDelayRef.current = Math.min(retryDelayRef.current * 2, 30 * 60 * 1000); // Max 30 minutes
-            console.warn(`Rate limit exceeded for notifications. Will retry in ${retryDelayRef.current / 1000 / 60} minutes.`);
+            retryDelayRef.current = Math.min(
+              retryDelayRef.current * 2,
+              30 * 60 * 1000
+            ); // Max 30 minutes
+            logger.warn(
+              `Rate limit exceeded for notifications. Will retry in ${
+                retryDelayRef.current / 1000 / 60
+              } minutes.`
+            );
             // Don't update state on rate limit - keep existing notifications
           } else {
-            console.error("Error fetching notifications:", error);
+            logger.error("Error fetching notifications", error);
           }
         }
       } finally {
@@ -51,17 +59,19 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
       if (intervalId) {
         clearTimeout(intervalId);
       }
-      
+
       intervalId = setTimeout(() => {
         if (isMounted) {
           abortController.abort(); // Cancel previous request
           abortController = new AbortController();
-          fetchNotifications(abortController.signal).then(() => {
-            scheduleNextFetch();
-          }).catch(() => {
-            // Even on error, schedule next fetch (with potentially increased delay)
-            scheduleNextFetch();
-          });
+          fetchNotifications(abortController.signal)
+            .then(() => {
+              scheduleNextFetch();
+            })
+            .catch(() => {
+              // Even on error, schedule next fetch (with potentially increased delay)
+              scheduleNextFetch();
+            });
         }
       }, retryDelayRef.current);
     };
@@ -100,7 +110,7 @@ const Notifications = ({ showToast, mobile = false, onClose }) => {
               const response = await axios.get("/api/notifications");
               setNotifications(response.data.notifications || []);
             } catch (error) {
-              console.error("Error marking notifications as read:", error);
+              logger.error("Error marking notifications as read", error);
             }
           }
         }}

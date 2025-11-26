@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from '../utils/api.js'; // Use API utility with CSRF support
+import logger from '../utils/logger.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -156,14 +157,13 @@ const Calendar = ({ showToast }) => {
         // Show user-friendly error message
         if (errorMessage.includes('Unable to fetch weather data')) {
           // Don't show toast for weather errors - just silently fail
-          // The user can see the error in the console if needed
-          console.warn('Weather API error:', errorMessage);
+          logger.warn('Weather API error');
         } else {
           // Show validation errors
-          console.error('Validation error:', error.response?.data);
+          logger.error('Validation error', error);
         }
       } else {
-        console.error('Error fetching suggestions:', error);
+        logger.error('Error fetching suggestions', error);
       }
       setStyleSuggestions([]);
       setWeather(null);

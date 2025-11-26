@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from '../utils/api.js';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import logger from '../utils/logger.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -61,10 +62,9 @@ const Settings = ({ showToast }) => {
       
       showToast({
         title: 'Success',
-        description: 'Settings saved successfully',
       });
     } catch (error) {
-      console.error('Error saving settings:', error);
+      logger.error('Error exporting data', error);
       showToast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to save settings',

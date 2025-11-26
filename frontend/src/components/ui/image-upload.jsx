@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from './button';
 import { FiUpload, FiX, FiImage } from 'react-icons/fi';
 import axios, { getCsrfToken } from '../../utils/api.js'; // Use API utility with CSRF support
+import logger from '../../utils/logger.js';
 
 const ImageUpload = ({ value, onChange, className = '' }) => {
   const [uploading, setUploading] = useState(false);
@@ -54,7 +55,7 @@ const ImageUpload = ({ value, onChange, className = '' }) => {
       setPreview(imageUrl);
       onChange(imageUrl);
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error', error);
       let errorMessage = 'Failed to upload image. Please try again.';
       
       if (error.response) {

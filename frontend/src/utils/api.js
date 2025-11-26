@@ -1,4 +1,5 @@
 import axios from "axios";
+import logger from "./logger.js";
 
 // Set base URL for all API requests
 const API_BASE_URL =
@@ -28,7 +29,7 @@ export const getCsrfToken = async (forceRefresh = false) => {
     } catch (error) {
       // Silently fail - CSRF might not be critical for some requests
       if (error.code !== "ECONNREFUSED" && error.code !== "ERR_NETWORK") {
-        console.error("Failed to get CSRF token:", error);
+        logger.error("Failed to get CSRF token", error);
       }
       csrfToken = null;
     }
@@ -87,7 +88,7 @@ axios.interceptors.response.use(
       // Clear token and retry once
       clearCsrfToken();
       originalRequest._retry = true;
-      console.warn("CSRF token expired, refreshing...");
+      logger.warn("CSRF token expired, refreshing...");
       
       // Get new CSRF token (force refresh)
       const newToken = await getCsrfToken(true);
@@ -100,14 +101,14 @@ axios.interceptors.response.use(
         // Retry the original request
         return axios(originalRequest);
       } else {
-        console.error("Failed to get new CSRF token for retry");
+        logger.error("Failed to get new CSRF token for retry");
       }
     }
     
     // Handle rate limiting (429) - don't retry automatically, let components handle it
     if (error.response?.status === 429) {
       const retryAfter = error.response.headers['retry-after'] || 60; // Default to 60 seconds
-      console.warn(`Rate limit exceeded. Retry after ${retryAfter} seconds.`);
+      logger.warn(`Rate limit exceeded. Retry after ${retryAfter} seconds.`);
       // Don't retry automatically for rate limits - components should handle this
     }
     

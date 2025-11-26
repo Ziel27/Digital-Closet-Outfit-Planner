@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from '../utils/api.js'; // Use API utility with CSRF support
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { FiPackage, FiGrid, FiPlus, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
@@ -46,7 +47,7 @@ const Home = () => {
       }
       setShowOnboarding(false);
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      logger.error('Error completing onboarding', error);
       setShowOnboarding(false);
     }
   };
@@ -81,7 +82,7 @@ const Home = () => {
     } catch (error) {
       // Don't log errors for aborted requests
       if (error.name !== 'CanceledError' && error.code !== 'ERR_CANCELED') {
-        console.error('Error fetching stats:', error);
+        logger.error('Error fetching stats', error);
       }
     }
   };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "../utils/api.js";
+import logger from "../utils/logger.js";
 import {
   Card,
   CardContent,
@@ -57,7 +58,7 @@ const Analytics = () => {
       const response = await axios.get("/api/analytics");
       setAnalytics(response.data);
     } catch (error) {
-      console.error("Error fetching analytics:", error);
+      logger.error("Error fetching analytics", error);
     } finally {
       setLoading(false);
     }

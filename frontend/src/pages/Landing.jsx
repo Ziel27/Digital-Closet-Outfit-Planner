@@ -14,6 +14,7 @@ import TermsModal from "../components/legal/TermsModal";
 import CookiesModal from "../components/legal/CookiesModal";
 import TestimonialForm from "../components/TestimonialForm";
 import axios from "../utils/api.js"; // Use API utility with CSRF support
+import logger from "../utils/logger.js";
 import {
   FiPackage,
   FiCalendar,
@@ -77,7 +78,7 @@ const Landing = () => {
           error.code !== "ERR_NETWORK" &&
           error.response?.status !== 429
         ) {
-          console.error("Error fetching stats:", error.message);
+          logger.error("Error fetching stats");
         }
         // Keep default values (0) on error - this is fine for landing page
       } finally {
@@ -103,7 +104,7 @@ const Landing = () => {
           error.code !== "ERR_NETWORK" &&
           error.response?.status !== 429
         ) {
-          console.error("Error fetching testimonials:", error.message);
+          logger.error("Error fetching testimonials");
         }
         // Keep default values on error - this is fine for landing page
       } finally {
@@ -832,7 +833,7 @@ const Landing = () => {
                   error.code !== "ERR_NETWORK" &&
                   error.response?.status !== 429
                 ) {
-                  console.error("Error fetching testimonials:", error.message);
+                  logger.error("Error fetching testimonials");
                 }
               }
             };
