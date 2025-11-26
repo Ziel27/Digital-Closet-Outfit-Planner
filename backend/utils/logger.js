@@ -1,4 +1,4 @@
-// Production-optimized logger with sensitive data sanitization
+// Production-optimized logger with sensitive data sanitization and CloudWatch JSON support
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -54,10 +54,43 @@ const sanitizeValue = (value, depth = 0) => {
   return value;
 };
 
+// Extract requestId from args if present
+const extractRequestId = (args) => {
+  if (args.length === 0) return null;
+  const firstArg = args[0];
+  if (typeof firstArg === 'object' && firstArg !== null && firstArg.requestId) {
+    return firstArg.requestId;
+  }
+  return null;
+};
+
+// Format log entry as JSON for CloudWatch or readable format for development
+const formatLogEntry = (level, message, requestId = null, ...args) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    level: level.toUpperCase(),
+    message,
+    ...(requestId && { requestId }),
+    ...(args.length > 0 && { 
+      data: args.length === 1 ? sanitizeValue(args[0]) : args.map(arg => sanitizeValue(arg))
+    })
+  };
+  
+  // In production, output as JSON for CloudWatch Logs Insights
+  if (isProduction) {
+    return JSON.stringify(logEntry);
+  }
+  
+  // In development, use readable format
+  const dataStr = args.length > 0 ? ' ' + JSON.stringify(logEntry.data, null, 2) : '';
+  return `[${logEntry.level}] ${logEntry.timestamp} - ${logEntry.message}${requestId ? ` [${requestId}]` : ''}${dataStr}`;
+};
+
 const logger = {
   info: (message, ...args) => {
-    const sanitizedArgs = args.map(arg => sanitizeValue(arg));
-    console.log(`[INFO] ${new Date().toISOString()} - ${message}`, ...sanitizedArgs);
+    const requestId = extractRequestId(args);
+    const logOutput = formatLogEntry('info', message, requestId, ...args);
+    console.log(logOutput);
   },
   
   error: (message, ...args) => {
@@ -75,18 +108,24 @@ const logger = {
       }
       return sanitizeValue(arg);
     });
-    console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, ...sanitizedArgs);
+    const requestId = extractRequestId(sanitizedArgs);
+    const logOutput = formatLogEntry('error', message, requestId, ...sanitizedArgs);
+    console.error(logOutput);
   },
   
   warn: (message, ...args) => {
     const sanitizedArgs = args.map(arg => sanitizeValue(arg));
-    console.warn(`[WARN] ${new Date().toISOString()} - ${message}`, ...sanitizedArgs);
+    const requestId = extractRequestId(sanitizedArgs);
+    const logOutput = formatLogEntry('warn', message, requestId, ...sanitizedArgs);
+    console.warn(logOutput);
   },
   
   debug: (message, ...args) => {
     if (isDevelopment) {
       const sanitizedArgs = args.map(arg => sanitizeValue(arg));
-      console.log(`[DEBUG] ${new Date().toISOString()} - ${message}`, ...sanitizedArgs);
+      const requestId = extractRequestId(sanitizedArgs);
+      const logOutput = formatLogEntry('debug', message, requestId, ...sanitizedArgs);
+      console.log(logOutput);
     }
   }
 };
