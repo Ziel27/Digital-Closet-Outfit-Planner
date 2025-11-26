@@ -56,7 +56,7 @@ async function startServer() {
   // Trust proxy - Required when behind Nginx reverse proxy
   // This allows Express to correctly handle X-Forwarded-* headers
   // and set secure cookies properly
-  app.set('trust proxy', true);
+  app.set('trust proxy', 1);
 
   // Security middleware
   app.use(
@@ -161,6 +161,7 @@ async function startServer() {
     message: "Too many requests from this IP, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
+    trustProxy: false,
     // Skip rate limiting for health checks and public endpoints
     skip: (req) => {
       const publicPaths = [
