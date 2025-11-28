@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { BackendStatusProvider, useBackendStatus } from './context/BackendStatusContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Sidebar from './components/layout/Sidebar';
 import Landing from './pages/Landing';
@@ -12,6 +13,7 @@ import AuthCallback from './pages/AuthCallback';
 import Help from './pages/Help';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
+import BackendOffline from './pages/BackendOffline';
 import { ToastContainer } from './components/ui/toast';
 import { useState } from 'react';
 
@@ -31,6 +33,7 @@ const PrivateRoute = ({ children }) => {
 
 function AppContent() {
   const { user } = useAuth();
+  const { isBackendOnline } = useBackendStatus();
   const [toasts, setToasts] = useState([]);
 
   const showToast = (toast) => {
@@ -41,88 +44,98 @@ function AppContent() {
     }, 5000);
   };
 
+  // Show backend offline page for all routes except landing page
+  // Landing page can work without backend (it has graceful fallbacks)
   return (
     <div className="min-h-screen bg-background">
       <Router>
         <Routes>
-          {/* Public routes without Navbar */}
+          {/* Landing page - can work without backend */}
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
           
-          {/* Protected routes with Sidebar */}
-          <Route
-            path="/*"
-            element={
-              <>
-                <Sidebar />
-                <main className="lg:pl-64 min-h-screen bg-background pt-16 lg:pt-0">
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-                    <Routes>
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <PrivateRoute>
-                          <Home />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/closet"
-                      element={
-                        <PrivateRoute>
-                          <Closet showToast={showToast} />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/outfits"
-                      element={
-                        <PrivateRoute>
-                          <Outfits showToast={showToast} />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/calendar"
-                      element={
-                        <PrivateRoute>
-                          <Calendar showToast={showToast} />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/help"
-                      element={
-                        <PrivateRoute>
-                          <Help />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings"
-                      element={
-                        <PrivateRoute>
-                          <Settings showToast={showToast} />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/analytics"
-                      element={
-                        <PrivateRoute>
-                          <Analytics />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                    </Routes>
-                  </div>
-                </main>
-                <ToastContainer toasts={toasts} setToasts={setToasts} />
-              </>
-            }
-          />
+          {/* Show offline page for all other routes if backend is down */}
+          {!isBackendOnline ? (
+            <Route path="*" element={<BackendOffline />} />
+          ) : (
+            <>
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              
+              {/* Protected routes with Sidebar */}
+              <Route
+                path="/*"
+                element={
+                  <>
+                    <Sidebar />
+                    <main className="lg:pl-64 min-h-screen bg-background pt-16 lg:pt-0">
+                      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+                        <Routes>
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <PrivateRoute>
+                              <Home />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/closet"
+                          element={
+                            <PrivateRoute>
+                              <Closet showToast={showToast} />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/outfits"
+                          element={
+                            <PrivateRoute>
+                              <Outfits showToast={showToast} />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/calendar"
+                          element={
+                            <PrivateRoute>
+                              <Calendar showToast={showToast} />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/help"
+                          element={
+                            <PrivateRoute>
+                              <Help />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings"
+                          element={
+                            <PrivateRoute>
+                              <Settings showToast={showToast} />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/analytics"
+                          element={
+                            <PrivateRoute>
+                              <Analytics />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        </Routes>
+                      </div>
+                    </main>
+                    <ToastContainer toasts={toasts} setToasts={setToasts} />
+                  </>
+                }
+              />
+            </>
+          )}
         </Routes>
       </Router>
     </div>
@@ -142,9 +155,11 @@ function AppWithTheme() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppWithTheme />
-    </AuthProvider>
+    <BackendStatusProvider>
+      <AuthProvider>
+        <AppWithTheme />
+      </AuthProvider>
+    </BackendStatusProvider>
   );
 }
 
