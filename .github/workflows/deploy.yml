@@ -46,7 +46,7 @@ jobs:
           --paths "/*"
 
       - name: Trigger backend deployment
-        uses: appleboy/ssh-action@0.1.10
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
