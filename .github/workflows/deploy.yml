@@ -4,11 +4,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
 
 jobs:
-  deploy:
+  frontend-deploy:
     runs-on: ubuntu-latest
-
+    if: contains(github.event.head_commit.modified, 'frontend/') || contains(github.event.head_commit.added, 'frontend/') || contains(github.event.head_commit.removed, 'frontend/')
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,7 +21,7 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: |
           cd frontend
           npm install
@@ -42,8 +45,18 @@ jobs:
       - name: Update CloudFront distribution
         run: |
           aws cloudfront create-invalidation \
-           --distribution-id E3U5YJBQ4WOPYG \
-          --paths "/*"
+            --distribution-id E3U5YJBQ4WOPYG \
+            --paths "/*"
+
+      - name: Frontend success message
+        run: echo "Frontend deployment completed successfully!"
+
+  backend-deploy:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'backend/') || contains(github.event.head_commit.added, 'backend/') || contains(github.event.head_commit.removed, 'backend/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Trigger backend deployment
         uses: appleboy/ssh-action@v1
@@ -51,6 +64,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
             cd /home/ubuntu/digital-closet-outfit-planner
             git fetch --all
@@ -59,6 +73,5 @@ jobs:
             npm install
             sudo systemctl restart myapp.service
 
-      - name: Success message
-        run: |
-          echo "Deployment completed successfullyyy!"
+      - name: Backend success message
+        run: echo "Backend deployment completed successfully!"
