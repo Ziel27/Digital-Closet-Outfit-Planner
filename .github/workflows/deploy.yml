@@ -61,4 +61,4 @@ jobs:
 
       - name: Success message
         run: |
-          echo "Deployment completed successfullyy!"
+          echo "Deployment completed successfullyyy!"
