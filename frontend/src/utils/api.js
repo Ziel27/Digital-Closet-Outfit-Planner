@@ -1,10 +1,12 @@
 import axios from "axios";
 import logger from "./logger.js";
 
-// Set base URL for all API requests
+// Set base URL for all API requests. Prefer build-time VITE_API_URL, then
+// runtime override `window.__API_URL__`, otherwise use relative paths.
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000";
+  (typeof window !== "undefined" && window.__API_URL__) ||
+  "";
 axios.defaults.baseURL = API_BASE_URL;
 
 // Configure axios defaults
@@ -41,7 +43,7 @@ export const getCsrfToken = async (forceRefresh = false) => {
 axios.interceptors.request.use(
   async (config) => {
     // Add Authorization token from localStorage if available
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -78,7 +80,7 @@ axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     // Handle CSRF errors
     if (
       error.response?.status === 403 &&
@@ -89,7 +91,7 @@ axios.interceptors.response.use(
       clearCsrfToken();
       originalRequest._retry = true;
       logger.warn("CSRF token expired, refreshing...");
-      
+
       // Get new CSRF token (force refresh)
       const newToken = await getCsrfToken(true);
       if (newToken) {
@@ -104,14 +106,14 @@ axios.interceptors.response.use(
         logger.error("Failed to get new CSRF token for retry");
       }
     }
-    
+
     // Handle rate limiting (429) - don't retry automatically, let components handle it
     if (error.response?.status === 429) {
-      const retryAfter = error.response.headers['retry-after'] || 60; // Default to 60 seconds
+      const retryAfter = error.response.headers["retry-after"] || 60; // Default to 60 seconds
       logger.warn(`Rate limit exceeded. Retry after ${retryAfter} seconds.`);
       // Don't retry automatically for rate limits - components should handle this
     }
-    
+
     return Promise.reject(error);
   }
 );

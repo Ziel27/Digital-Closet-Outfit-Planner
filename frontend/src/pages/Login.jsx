@@ -37,7 +37,8 @@ const Login = () => {
 
     const backendUrl =
       import.meta.env.VITE_API_URL ||
-      "http://localhost:5000";
+      (typeof window !== "undefined" && window.__API_URL__) ||
+      "";
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 
@@ -65,9 +66,9 @@ const Login = () => {
               </div>
             </div>
           )}
-          <Button 
-            onClick={handleGoogleLogin} 
-            className="w-full" 
+          <Button
+            onClick={handleGoogleLogin}
+            className="w-full"
             size="lg"
             disabled={!isBackendOnline || isChecking}
           >
