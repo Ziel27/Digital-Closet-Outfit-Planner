@@ -1,6 +1,59 @@
 # Digital Closet - Outfit Planner
 
-A full-stack MERN application for organizing your wardrobe and planning outfits with OAuth authentication.
+[![AWS](https://img.shields.io/badge/AWS-S3%20%2B%20CloudFront-FF9900?style=flat&logo=amazon-aws)](https://aws.amazon.com/)
+[![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?style=flat&logo=amazon-aws)](https://aws.amazon.com/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat&logo=github-actions)](https://github.com/features/actions)
+[![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20CloudWatch-F46800?style=flat&logo=grafana)](https://grafana.com/)
+
+A full-stack MERN application for organizing your wardrobe and planning outfits with OAuth authentication. Built for **AWS AI Ops training** with production-grade deployment on AWS infrastructure.
+
+## 🚀 AWS Production Deployment
+
+This application is **currently deployed on AWS** and optimized for **AWS AI Ops training**:
+
+### Deployment Architecture
+
+- **Frontend**: Deployed on **AWS S3** + **CloudFront CDN**
+
+  - Static assets served from S3 bucket
+  - CloudFront distribution for global content delivery
+  - Automated cache invalidation on deployments
+
+- **Backend**: Deployed on **AWS EC2**
+
+  - Node.js Express server running on EC2 instance
+  - Systemd service for process management
+  - Automatic restarts and health monitoring
+
+- **CI/CD Pipeline**: **GitHub Actions**
+  - Automated deployment on push to `main` branch
+  - Frontend build and S3 sync
+  - CloudFront cache invalidation
+  - Backend deployment via SSH to EC2
+  - Zero-downtime deployments
+
+### Monitoring & Observability
+
+- **Grafana Dashboards**: Real-time visualization of application metrics
+- **CloudWatch Integration**: AWS CloudWatch as data source for backend EC2 metrics
+  - Server health monitoring
+  - Resource utilization tracking
+  - Performance metrics and logging
+  - Alerting and anomaly detection
+
+### AWS AI Ops Features
+
+This project is specifically designed for **AWS AI Ops training** with:
+
+- ✅ Comprehensive logging and structured log formats
+- ✅ Health check endpoints for monitoring
+- ✅ Metrics collection endpoints
+- ✅ Error tracking and reporting
+- ✅ Request ID tracking for distributed tracing
+- ✅ CloudWatch Logs integration ready
+- ✅ Grafana dashboard configuration for operational intelligence
+
+**Live Application**: [Visit the deployed application](https://digitalcloset.giandazielpon.online) _(Update with your actual CloudFront URL)_
 
 ## Features
 
@@ -20,6 +73,7 @@ A full-stack MERN application for organizing your wardrobe and planning outfits 
 ## Tech Stack
 
 ### Frontend
+
 - React.js
 - Tailwind CSS
 - shadcn/ui components
@@ -28,6 +82,7 @@ A full-stack MERN application for organizing your wardrobe and planning outfits 
 - Axios
 
 ### Backend
+
 - Node.js
 - Express.js
 - MongoDB with Mongoose
@@ -35,6 +90,14 @@ A full-stack MERN application for organizing your wardrobe and planning outfits 
 - JWT Authentication
 - Helmet (Security)
 - Express Rate Limiting
+
+### AWS Infrastructure
+
+- **Frontend Hosting**: AWS S3 + CloudFront
+- **Backend Hosting**: AWS EC2
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Grafana + AWS CloudWatch
+- **AI Ops Ready**: Comprehensive logging, metrics, and observability
 
 ## Prerequisites
 
@@ -163,16 +226,19 @@ Digital-Closet-Outfit-Planner/
 ## API Endpoints
 
 ### Authentication
+
 - `GET /api/auth/google` - Initiate Google OAuth
 - `GET /api/auth/google/callback` - OAuth callback
 - `POST /api/auth/logout` - Logout user
 - `GET /api/auth/me` - Get current user
 
 ### Users
+
 - `GET /api/users/profile` - Get user profile (Protected)
 - `PUT /api/users/profile` - Update user profile (Protected)
 
 ### Clothing
+
 - `GET /api/clothing` - Get all clothing items (Protected)
 - `GET /api/clothing/:id` - Get single clothing item (Protected)
 - `POST /api/clothing` - Create clothing item (Protected)
@@ -180,6 +246,7 @@ Digital-Closet-Outfit-Planner/
 - `DELETE /api/clothing/:id` - Delete clothing item (Protected)
 
 ### Outfits
+
 - `GET /api/outfits` - Get all outfits (Protected)
 - `GET /api/outfits/:id` - Get single outfit (Protected)
 - `POST /api/outfits` - Create outfit (Protected)
@@ -187,6 +254,7 @@ Digital-Closet-Outfit-Planner/
 - `DELETE /api/outfits/:id` - Delete outfit (Protected)
 
 ### Calendar
+
 - `GET /api/calendar` - Get calendar events (with optional date range) (Protected)
 - `GET /api/calendar/date/:date` - Get event for specific date (Protected)
 - `GET /api/calendar/:id` - Get single calendar event (Protected)
@@ -196,6 +264,7 @@ Digital-Closet-Outfit-Planner/
 - `POST /api/calendar/suggestions` - Get weather-based style suggestions (Protected)
 
 ### System
+
 - `GET /api/health` - Health check endpoint with database status, memory usage, and uptime (Public)
 - `GET /api/test` - Test endpoint for debugging and testing (Public)
 - `POST /api/test` - Test POST endpoint for testing POST requests (Public)
@@ -215,12 +284,14 @@ Digital-Closet-Outfit-Planner/
 ## Development
 
 ### Backend Development
+
 ```bash
 cd backend
 npm run dev  # Uses nodemon for auto-restart
 ```
 
 ### Frontend Development
+
 ```bash
 cd frontend
 npm run dev  # Vite dev server with hot reload
@@ -229,12 +300,83 @@ npm run dev  # Vite dev server with hot reload
 ## Production Build
 
 ### Frontend
+
 ```bash
 cd frontend
 npm run build
 ```
 
 The build output will be in the `dist` directory.
+
+## AWS Deployment
+
+### Deployment Process
+
+The application uses **GitHub Actions** for automated CI/CD:
+
+1. **On push to `main` branch**:
+
+   - Frontend builds automatically
+   - Deploys to S3 bucket
+   - Invalidates CloudFront cache
+   - Backend deploys to EC2 via SSH
+   - Service restarts automatically
+
+2. **Infrastructure Setup**:
+   - S3 bucket configured for static website hosting
+   - CloudFront distribution pointing to S3
+   - EC2 instance with Node.js runtime
+   - Systemd service for backend process management
+   - Security groups configured for HTTP/HTTPS access
+
+### Monitoring Setup
+
+**Grafana Configuration**:
+
+- CloudWatch data source configured
+- Dashboard importing EC2 metrics from CloudWatch
+- Real-time visualization of:
+  - CPU utilization
+  - Memory usage
+  - Network I/O
+  - Disk I/O
+  - Application logs and errors
+
+**CloudWatch Metrics**:
+
+- EC2 instance metrics automatically collected
+- Custom application metrics via `/api/health` endpoint
+- Log groups for centralized logging
+- CloudWatch Alarms for alerting
+
+### Environment Variables for Production
+
+Ensure these are set in your EC2 instance:
+
+```env
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=your-production-mongodb-uri
+JWT_SECRET=your-production-jwt-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+SESSION_SECRET=your-session-secret
+FRONTEND_URL=https://your-cloudfront-url.cloudfront.net
+WEATHER_API_KEY=your-weather-api-key
+CLOUDINARY_CLOUD_NAME=your-cloudinary-name
+CLOUDINARY_API_KEY=your-cloudinary-key
+CLOUDINARY_API_SECRET=your-cloudinary-secret
+```
+
+### AWS AI Ops Training Resources
+
+This project serves as a comprehensive example for:
+
+- **Observability**: Implementing logging and metrics collection
+- **Monitoring**: Setting up Grafana with CloudWatch data sources
+- **CI/CD**: Automating deployments with GitHub Actions
+- **Infrastructure as Code**: CloudFormation/Terraform ready
+- **Operational Intelligence**: Health checks, metrics, and alerting
 
 ## License
 
@@ -243,4 +385,3 @@ ISC
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
