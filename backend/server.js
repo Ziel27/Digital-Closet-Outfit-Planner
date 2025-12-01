@@ -93,10 +93,8 @@ async function startServer() {
         microphone: [],
         geolocation: [],
       },
-      // Disable Cross-Origin-Opener-Policy for HTTP (only works with HTTPS)
-      // This prevents the browser warning when using HTTP
-      // Enable when you move to HTTPS: crossOriginOpenerPolicy: { policy: "same-origin" }
       crossOriginOpenerPolicy: { policy: "same-origin" },
+      crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin requests (API server)
     })
   );
 
@@ -179,8 +177,7 @@ async function startServer() {
     message: "Too many requests from this IP, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: false,
-    // Skip rate limiting for health checks, public endpoints, and OPTIONS (CORS preflight)
+    // Trust proxy when in production (Render uses reverse proxy)
     skip: (req) => {
       // Skip OPTIONS requests (CORS preflight) - Safari requires these
       if (req.method === "OPTIONS") {
