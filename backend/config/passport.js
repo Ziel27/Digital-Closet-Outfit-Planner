@@ -28,17 +28,8 @@ if (!hasClientID || !hasClientSecret) {
 } else {
   logger.info("✓ Google OAuth credentials loaded successfully");
 
-  // Construct callback URL
-  // Google OAuth requires a domain name (not IP address)
-  // Use OAUTH_CALLBACK_URL or BACKEND_URL environment variable
-  // For local development, use localhost (must be registered in Google Cloud Console)
-  const callbackURL =
-    process.env.OAUTH_CALLBACK_URL ||
-    (process.env.BACKEND_URL
-      ? `${process.env.BACKEND_URL}/api/auth/google/callback`
-      : process.env.NODE_ENV === "development"
-      ? `http://localhost:5000/api/auth/google/callback`
-      : `https://digitalclosetserver.giandazielpon.online/api/auth/google/callback`);
+  // Construct callback URL - hardcoded for production
+  const callbackURL = "https://www.digitalclosetserver.giandazielpon.online/api/auth/google/callback";
 
   logger.info(`✓ OAuth callback URL: ${callbackURL}`);
 
@@ -48,6 +39,7 @@ if (!hasClientID || !hasClientSecret) {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: callbackURL,
+        proxy: true, // Important for HTTPS behind Render's proxy
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
