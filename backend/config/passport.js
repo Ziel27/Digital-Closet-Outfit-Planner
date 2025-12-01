@@ -29,7 +29,8 @@ if (!hasClientID || !hasClientSecret) {
   logger.info("✓ Google OAuth credentials loaded successfully");
 
   // Construct callback URL - hardcoded for production
-  const callbackURL = "https://www.digitalclosetserver.giandazielpon.online/api/auth/google/callback";
+  const callbackURL =
+    "https://www.digitalclosetserver.giandazielpon.online/api/auth/google/callback";
 
   logger.info(`✓ OAuth callback URL: ${callbackURL}`);
 
