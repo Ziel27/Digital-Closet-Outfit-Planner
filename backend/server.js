@@ -8,21 +8,32 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env from the same directory as server.js
-const result = dotenv.config({ path: join(__dirname, ".env") });
+// Load .env from the same directory as server.js (only in development)
+// In production (Render), environment variables are already loaded
+if (process.env.NODE_ENV !== "production") {
+  const result = dotenv.config({ path: join(__dirname, ".env") });
+  if (result.error) {
+    console.error("Error loading .env file:", result.error.message);
+    process.exit(1);
+  } else {
+    console.log("✓ .env file loaded successfully");
+  }
+} else {
+  console.log("Running in production - using platform environment variables");
+}
 
 // Import logger and validateEnv AFTER dotenv loads
 import logger from "./utils/logger.js";
 import { validateEnv } from "./utils/validateEnv.js";
 
-if (result.error) {
-  logger.error("Error loading .env file:", result.error.message);
-} else {
-  logger.info("✓ .env file loaded successfully");
-}
-
 // Validate required environment variables
-validateEnv();
+try {
+  validateEnv();
+  logger.info("✓ Environment variables validated successfully");
+} catch (error) {
+  logger.error("Environment validation failed:", error.message);
+  process.exit(1);
+}
 
 import express from "express";
 import mongoose from "mongoose";
