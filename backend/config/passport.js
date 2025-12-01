@@ -28,10 +28,10 @@ if (!hasClientID || !hasClientSecret) {
 } else {
   logger.info("✓ Google OAuth credentials loaded successfully");
 
-  // Use absolute callback URL for Google OAuth - required by Google
-  const callbackURL = "https://www.digitalclosetserver.giandazielpon.online/api/auth/google/callback";
+  // Use OAUTH_CALLBACK_URL environment variable with fallback for local development
+  const callbackURL = process.env.OAUTH_CALLBACK_URL || "http://localhost:5000/api/auth/google/callback";
 
-  logger.info(`✓ OAuth callback URL (ABSOLUTE): ${callbackURL}`);
+  logger.info(`✓ OAuth callback URL: ${callbackURL}`);
 
   passport.use(
     new GoogleStrategy(
