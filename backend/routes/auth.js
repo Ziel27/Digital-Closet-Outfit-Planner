@@ -25,9 +25,13 @@ setInterval(() => {
 }, 5 * 60 * 1000); // Clean every 5 minutes
 
 // Google OAuth routes
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+router.get('/google', (req, res, next) => {
+  logger.info('=== GOOGLE OAUTH INITIATED ===');
+  logger.info('Request URL:', req.url);
+  logger.info('Base URL:', req.baseUrl);
+  logger.info('Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+  next();
+}, passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
