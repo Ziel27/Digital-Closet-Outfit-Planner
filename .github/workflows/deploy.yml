@@ -51,27 +51,3 @@ jobs:
       - name: Frontend success message
         run: echo "Frontend deployment completed successfully!"
 
-  backend-deploy:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'backend/') || contains(github.event.head_commit.added, 'backend/') || contains(github.event.head_commit.removed, 'backend/')
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Trigger backend deployment
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            cd /home/ubuntu/digital-closet-outfit-planner
-            git fetch --all
-            git reset --hard origin/main
-            cd backend
-            npm install
-            sudo systemctl restart myapp.service
-
-      - name: Backend success message
-        run: echo "Backend deployment completed successfully!"

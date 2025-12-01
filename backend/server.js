@@ -119,7 +119,9 @@ async function startServer() {
     "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
     "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
     "https://digitalcloset.giandazielpon.online", // Vercel frontend
+    "https://www.digitalcloset.giandazielpon.online", // Vercel frontend with www
     "https://digitalclosetserver.giandazielpon.online", // Backend domain
+    "https://www.digitalclosetserver.giandazielpon.online", // Backend domain with www
     "http://localhost:3000", // For local development
     process.env.FRONTEND_URL, // From environment variable if set
   ].filter(Boolean);
@@ -421,7 +423,9 @@ async function startServer() {
       "http://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
       "https://digital-closet-ap1.s3-website-ap-southeast-1.amazonaws.com",
       "https://digitalcloset.giandazielpon.online",
+      "https://www.digitalcloset.giandazielpon.online",
       "https://digitalclosetserver.giandazielpon.online",
+      "https://www.digitalclosetserver.giandazielpon.online",
       "http://localhost:3000",
       process.env.FRONTEND_URL,
     ].filter(Boolean);
