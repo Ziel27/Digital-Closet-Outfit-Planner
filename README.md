@@ -1,15 +1,12 @@
 # Digital Closet - Outfit Planner
 
 [![AWS](https://img.shields.io/badge/AWS-S3%20%2B%20CloudFront-FF9900?style=flat&logo=amazon-aws)](https://aws.amazon.com/)
-[![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?style=flat&logo=amazon-aws)](https://aws.amazon.com/)
+[![Render](https://img.shields.io/badge/Render-Backend%20Hosting-46E3B7?style=flat&logo=render)](https://render.com/)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat&logo=github-actions)](https://github.com/features/actions)
-[![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20CloudWatch-F46800?style=flat&logo=grafana)](https://grafana.com/)
 
-A full-stack MERN application for organizing your wardrobe and planning outfits with OAuth authentication. Built for **AWS AI Ops training** with production-grade deployment on AWS infrastructure.
+A full-stack MERN application for organizing your wardrobe and planning outfits with OAuth authentication.
 
-## 🚀 AWS Production Deployment
-
-This application is **currently deployed on AWS** and optimized for **AWS AI Ops training**:
+## 🚀 Production Deployment
 
 ### Deployment Architecture
 
@@ -19,41 +16,21 @@ This application is **currently deployed on AWS** and optimized for **AWS AI Ops
   - CloudFront distribution for global content delivery
   - Automated cache invalidation on deployments
 
-- **Backend**: Deployed on **AWS EC2**
+- **Backend**: Deployed on **Render**
 
-  - Node.js Express server running on EC2 instance
-  - Systemd service for process management
-  - Automatic restarts and health monitoring
+  - Node.js Express server running on Render
+  - Automatic HTTPS and SSL certificate management
+  - Zero-downtime deployments
+  - Auto-scaling and health monitoring
+  - Custom domain support
 
 - **CI/CD Pipeline**: **GitHub Actions**
   - Automated deployment on push to `main` branch
   - Frontend build and S3 sync
   - CloudFront cache invalidation
-  - Backend deployment via SSH to EC2
-  - Zero-downtime deployments
+  - Backend auto-deploys via Render's GitHub integration
 
-### Monitoring & Observability
-
-- **Grafana Dashboards**: Real-time visualization of application metrics
-- **CloudWatch Integration**: AWS CloudWatch as data source for backend EC2 metrics
-  - Server health monitoring
-  - Resource utilization tracking
-  - Performance metrics and logging
-  - Alerting and anomaly detection
-
-### AWS AI Ops Features
-
-This project is specifically designed for **AWS AI Ops training** with:
-
-- ✅ Comprehensive logging and structured log formats
-- ✅ Health check endpoints for monitoring
-- ✅ Metrics collection endpoints
-- ✅ Error tracking and reporting
-- ✅ Request ID tracking for distributed tracing
-- ✅ CloudWatch Logs integration ready
-- ✅ Grafana dashboard configuration for operational intelligence
-
-**Live Application**: [Visit the deployed application](https://digitalcloset.giandazielpon.online) _(Update with your actual CloudFront URL)_
+**Live Application**: [https://digitalcloset.giandazielpon.online](https://digitalcloset.giandazielpon.online)
 
 ## Features
 
@@ -137,6 +114,7 @@ WEATHER_API_KEY=your-openweathermap-api-key
 CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
 CLOUDINARY_API_KEY=your-cloudinary-api-key
 CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+OAUTH_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
 ```
 
 ### 3. Frontend Setup
@@ -152,7 +130,9 @@ npm install
 2. Create a new project or select an existing one
 3. Enable Google+ API
 4. Create OAuth 2.0 credentials
-5. Add authorized redirect URI: `http://localhost:5000/api/auth/google/callback`
+5. Add authorized redirect URIs:
+   - For local development: `http://localhost:5000/api/auth/google/callback`
+   - For production: `https://your-backend-domain.com/api/auth/google/callback`
 6. Copy Client ID and Client Secret to your `.env` file
 
 ### 5. OpenWeatherMap API Setup
@@ -308,75 +288,71 @@ npm run build
 
 The build output will be in the `dist` directory.
 
-## AWS Deployment
+## Production Deployment
 
-### Deployment Process
+### Render Backend Deployment
 
-The application uses **GitHub Actions** for automated CI/CD:
+1. **Create a Render Account** at [render.com](https://render.com)
 
-1. **On push to `main` branch**:
+2. **Create a New Web Service**:
+   - Connect your GitHub repository
+   - Select the repository
+   - Configure the service:
+     - **Name**: digital-closet-backend
+     - **Environment**: Node
+     - **Build Command**: `cd backend && npm install`
+     - **Start Command**: `cd backend && node server.js`
+     - **Branch**: main
 
-   - Frontend builds automatically
-   - Deploys to S3 bucket
-   - Invalidates CloudFront cache
-   - Backend deploys to EC2 via SSH
-   - Service restarts automatically
+3. **Environment Variables** in Render Dashboard:
+   ```env
+   NODE_ENV=production
+   PORT=10000
+   MONGODB_URI=your-production-mongodb-uri
+   JWT_SECRET=your-production-jwt-secret
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   SESSION_SECRET=your-session-secret
+   FRONTEND_URL=https://digitalcloset.giandazielpon.online
+   WEATHER_API_KEY=your-weather-api-key
+   CLOUDINARY_CLOUD_NAME=your-cloudinary-name
+   CLOUDINARY_API_KEY=your-cloudinary-key
+   CLOUDINARY_API_SECRET=your-cloudinary-secret
+   OAUTH_CALLBACK_URL=https://www.digitalclosetserver.giandazielpon.online/api/auth/google/callback
+   ```
 
-2. **Infrastructure Setup**:
-   - S3 bucket configured for static website hosting
-   - CloudFront distribution pointing to S3
-   - EC2 instance with Node.js runtime
-   - Systemd service for backend process management
-   - Security groups configured for HTTP/HTTPS access
+4. **Custom Domain** (Optional):
+   - Go to Settings → Custom Domains
+   - Add your custom domain (e.g., `www.digitalclosetserver.giandazielpon.online`)
+   - Update DNS CNAME record to point to Render
+   - Render automatically provisions SSL certificate
 
-### Monitoring Setup
+### AWS S3 + CloudFront Frontend Deployment
 
-**Grafana Configuration**:
+The frontend deployment is automated via GitHub Actions. See `.github/workflows/deploy.yml` for configuration.
 
-- CloudWatch data source configured
-- Dashboard importing EC2 metrics from CloudWatch
-- Real-time visualization of:
-  - CPU utilization
-  - Memory usage
-  - Network I/O
-  - Disk I/O
-  - Application logs and errors
-
-**CloudWatch Metrics**:
-
-- EC2 instance metrics automatically collected
-- Custom application metrics via `/api/health` endpoint
-- Log groups for centralized logging
-- CloudWatch Alarms for alerting
-
-### Environment Variables for Production
-
-Ensure these are set in your EC2 instance:
-
-```env
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=your-production-mongodb-uri
-JWT_SECRET=your-production-jwt-secret
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-SESSION_SECRET=your-session-secret
-FRONTEND_URL=https://your-cloudfront-url.cloudfront.net
-WEATHER_API_KEY=your-weather-api-key
-CLOUDINARY_CLOUD_NAME=your-cloudinary-name
-CLOUDINARY_API_KEY=your-cloudinary-key
-CLOUDINARY_API_SECRET=your-cloudinary-secret
+**Manual deployment**:
+```bash
+cd frontend
+npm run build
+aws s3 sync dist/ s3://your-bucket-name --delete
+aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"
 ```
 
-### AWS AI Ops Training Resources
+### Post-Deployment
 
-This project serves as a comprehensive example for:
+1. **Update Google OAuth**:
+   - Add production callback URL to Google Cloud Console
+   - Example: `https://www.digitalclosetserver.giandazielpon.online/api/auth/google/callback`
 
-- **Observability**: Implementing logging and metrics collection
-- **Monitoring**: Setting up Grafana with CloudWatch data sources
-- **CI/CD**: Automating deployments with GitHub Actions
-- **Infrastructure as Code**: CloudFormation/Terraform ready
-- **Operational Intelligence**: Health checks, metrics, and alerting
+2. **MongoDB Atlas**:
+   - Whitelist Render's IP addresses or allow all IPs (`0.0.0.0/0`)
+   - Network Access → Add IP Address
+
+3. **Test the deployment**:
+   - Visit your frontend URL
+   - Test OAuth login
+   - Verify all features work correctly
 
 ## License
 
