@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
-      - 'backend/**'
+      - "frontend/**"
+      - "backend/**"
 
 jobs:
   frontend-deploy:
@@ -49,4 +49,3 @@ jobs:
 
       - name: Frontend success message
         run: echo "Frontend deployment completed successfully!"
-
